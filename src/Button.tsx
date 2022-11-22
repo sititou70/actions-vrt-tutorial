@@ -2,7 +2,7 @@ import React from "react";
 import "./Button.css";
 
 function Button() {
-  return <button>this is a button</button>;
+  return <button>これはボタンです</button>;
 }
 
 export default Button;
