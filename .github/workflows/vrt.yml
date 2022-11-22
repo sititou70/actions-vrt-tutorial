@@ -1,0 +1,51 @@
+name: Visual Regression Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  reg_suit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: find refs
+        run: |
+          actual_ref=$(git rev-parse "origin/$GITHUB_HEAD_REF")
+          expect_ref=$(git merge-base "origin/$GITHUB_HEAD_REF" "origin/$GITHUB_BASE_REF")
+
+          echo "actual_ref=$actual_ref" >> $GITHUB_ENV
+          echo "expect_ref=${expect_ref}" >> $GITHUB_ENV
+      - name: checkout expect ref
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.expect_ref }}
+          fetch-depth: 0
+      - name: checkout actual ref
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.actual_ref }}
+          fetch-depth: 0
+
+      - name: echo
+        run: |
+          env | grep GITHUB_ | sort
+          echo actual_ref $actual_ref
+          echo expect_ref $expect_ref
+
+      - name: npm ci
+        run: npm ci
+
+      - name: reg-suit
+        run: ./.regsuit/regsuit.sh $actual_ref $expect_ref
+
+      - name: upload result
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: vrt-result
+          path: __reg_report__
