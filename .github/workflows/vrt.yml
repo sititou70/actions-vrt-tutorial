@@ -9,10 +9,15 @@ jobs:
   reg_suit:
     runs-on: ubuntu-latest
     steps:
+      - name: setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - name: checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: find refs
         run: |
           actual_ref=$(git rev-parse "origin/$GITHUB_HEAD_REF")
@@ -41,7 +46,9 @@ jobs:
         run: npm ci
 
       - name: reg-suit
-        run: ./.regsuit/regsuit.sh $actual_ref $expect_ref
+        run: |
+          sudo apt install fonts-ipafont fonts-ipaexfont
+          ./.regsuit/regsuit.sh $actual_ref $expect_ref
 
       - name: upload result
         if: always()
